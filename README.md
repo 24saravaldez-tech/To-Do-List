@@ -1,4 +1,4 @@
-📝 To-Do List Web App
+# 📝 To-Do List Web App
 
 Una aplicación web de lista de tareas simple, intuitiva y con un diseño estético minimalista, 
 desarrollada con el objetivo de dominar las bases del desarrollo web y la manipulación del DOM.
