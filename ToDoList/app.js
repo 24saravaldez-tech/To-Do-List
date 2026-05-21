@@ -1,81 +1,28 @@
-const data = [
-    { id: 1, texto: 'Ganar en Among us', estaCompletada: true },
-    { id: 2, texto: 'Terminar la partida', estaCompletada: false }
+let data = []
 
-]
+if (JSON.parse(localStorage.getItem('data'))) {
+    data = JSON.parse(localStorage.getItem('data'))
+} else {
+    localStorage.setItem('data', JSON.stringify([]))
+}
 
 let input = document.querySelector('#inputTarea')
 let btn = document.querySelector("#btnTarea")
 let tareas = document.querySelector('#tareas')
 
-if (data.length > 0) {
 
-    for (let i = 0; i <= data.length - 1; i++) {
-
-        //Dibujando Div de tarea
-        let div = document.createElement('div')
-        div.className = 'd-flex w-50 justify-content-evenly align-items-baseline'
+//localStorage.getItem() //permite traer la informacion
+//localStorage.setItem() //permite ingresar la indomracion
 
 
-        //dibujando checkbox
-        let checkbox = document.createElement('input')
-        checkbox.setAttribute('type', 'checkbox')
-        checkbox.setAttribute('id', data[i].id)
 
-        checkbox.classList = 'me-2'
-
-
-        //dibujando el label
-        let label = document.createElement('label')
-        //pendiente: insertar el texto en el label
-
-        if (data[i].estaCompletada) {
-            checkbox.checked = true;
-            label.classList.add('text-decoration-line-through')
-        } else {
-            checkbox.checked = false;
-            label.classList.remove('text-decoration-line-through')
-        }
-
-        checkbox.addEventListener('click', (event) => {
-            //console.log(event.target.id)
-            let tareaABuscar = data.find(item => item.id == event.target.id)
-            tareaABuscar.estaCompletada = !tareaABuscar.estaCompletada
-
-            if (tareaABuscar.estaCompletada) {
-                label.classList.add('text-decoration-line-through')
-            }else{
-                label.classList.remove('text-decoration-line-through')
-            }
-        })
-
-
-        //dibujar el sup
-        let sup = document.createElement('sup')
-        sup.textContent = 'X'
-
-        label.textContent = data[i].texto
-
-        div.append(checkbox)
-        div.append(label)
-        div.append(sup)
-        //  input.value = ''
-        tareas.append(div)
-
-        sup.addEventListener('click', (event) => {
-            div.remove(checkbox, label, sup)
-        })
-
-    }
+const getNextId = () => {
+    return data.length > 0 ? data[data.length - 1].id + 1 : 1
 }
 
 
 
-
-//Agregando elementos al div
-btn.addEventListener('click', (event) => {
-
-
+const dibujarElementos = (info = null, i = null) => {
     //Dibujando Div de tarea
     let div = document.createElement('div')
     div.className = 'd-flex w-50 justify-content-evenly align-items-baseline'
@@ -84,38 +31,105 @@ btn.addEventListener('click', (event) => {
     //dibujando checkbox
     let checkbox = document.createElement('input')
     checkbox.setAttribute('type', 'checkbox')
-    checkbox.classList = 'me-2'
-
+    checkbox.className = 'me-2 checkbox'
 
     //dibujando el label
     let label = document.createElement('label')
-    //pendiente: insertar el texto en el label
-
-    checkbox.addEventListener('click', (event) => {
-
-        label.classList.toggle('text-decoration-line-through')
-
-    })
-
 
     //dibujar el sup
     let sup = document.createElement('sup')
+    sup.className = 'eliminar'
     sup.textContent = 'X'
 
-    label.textContent = input.value //aqui se inserto el texto que estaba pendiente
+
+    if (info == null || i == null) {
+        checkbox.setAttribute('id', getNextId())
+        sup.setAttribute('id', getNextId())
+        label.textContent = input.value
+    } else {
+        checkbox.setAttribute('id', info[i].id)
+        label.textContent = info[i].texto
+        sup.setAttribute('id', info[i].id)
+    }
 
     div.append(checkbox)
     div.append(label)
     div.append(sup)
 
-    data.push({ id: data.length + 1, texto: input.value, estaCompletada: false })
+    return { div, checkbox, label, sup }
 
+}
+
+
+const dibujarTodo = () => {
+
+    if (data.length > 0) {
+
+        for (let i = 0; i <= data.length - 1; i++) {
+
+            const { div, checkbox, label, sup } = dibujarElementos(data, i);
+
+            if (data[i].estaCompletada) {
+                checkbox.checked = true;
+                label.classList.add('text-decoration-line-through')
+            } else {
+                checkbox.checked = false;
+                label.classList.remove('text-decoration-line-through')
+            }
+
+            tareas.append(div)
+        }
+
+    }
+}
+
+btn.addEventListener('click', (event) => {
+
+    data.push({ id: getNextId(), texto: input.value, estaCompletada: false })
+
+    localStorage.setItem('data', JSON.stringify(data))
+
+    tareas.innerHTML = ''
+    dibujarTodo();
     input.value = ''
-    tareas.append(div)
 
-    sup.addEventListener('click', (event) => {
-        div.remove(checkbox, label, sup)
-    })
 
 })
+
+input.addEventListener('keyup', (event) => {
+
+    let key = event.key
+
+    if (key == 'Enter') {
+        data.push({ id: data.length + 1, texto: input.value, estaCompletada: false })
+
+        tareas.innerHTML = ''
+        dibujarTodo();
+
+        input.value = ''
+    }
+
+    localStorage.setItem('data', JSON.stringify(data))
+})
+
+
+tareas.addEventListener('click', (event) => {
+    if (event.target.classList.contains('checkbox')) {
+        let tareaABuscar = data.find(item => item.id == event.target.id)
+        tareaABuscar.estaCompletada = !tareaABuscar.estaCompletada
+
+        if (tareaABuscar.estaCompletada) {
+            event.target.nextSibling.classList.add('text-decoration-line-through')
+        } else {
+            event.target.nextSibling.classList.remove('text-decoration-line-through')
+        }
+    } else if (event.target.classList.contains('eliminar')) {
+        event.target.parentElement.remove()
+        data = data.filter(item => item.id != event.target.id)
+    }
+})
+
+
+dibujarTodo()
+
 
